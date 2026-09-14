@@ -1,0 +1,61 @@
+[project]
+name = "qwen3.5-4b-vllm-service"
+version = "0.1.0"
+description = "Qwen3.5-4B vLLM deployment service with OpenAI-compatible API"
+requires-python = "==3.12.13"
+dependencies = [
+    "vllm==0.23.0",
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "torchaudio==2.11.0",
+    "transformers>=4.57.0",
+    "openai",
+    "modelscope",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.9",
+]
+
+[tool.uv]
+package = false
+index-strategy = "first-index"
+python-install-mirror = "https://registry.npmmirror.com/-/binary/python-build-standalone"
+
+# ── 主 PyPI 镜像（阿里云）─────────────────────────────────────
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+# ── 备选 PyPI 镜像（清华源）───────────────────────────────────
+[[tool.uv.index]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+
+# ── PyTorch CUDA 13.0 wheel 镜像（阿里云）─────────────────────
+[[tool.uv.index]]
+name = "pytorch-cu130-aliyun"
+url = "https://mirrors.aliyun.com/pytorch-wheels/cu130/"
+format = "flat"
+explicit = true
+
+# ── 依赖源绑定 ────────────────────────────────────────────────
+[tool.uv.sources]
+torch = { index = "pytorch-cu130-aliyun" }
+torchvision = { index = "pytorch-cu130-aliyun" }
+torchaudio = { index = "pytorch-cu130-aliyun" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008", "E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
