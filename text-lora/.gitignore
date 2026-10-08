@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.ruff_cache/
+
+# 本地数据和训练产物；示例及说明保留在版本控制中。
+datasets/*.jsonl
+datasets/raw/
+datasets/processed/
+outputs/*
+!outputs/.gitkeep

@@ -1,0 +1,12 @@
+# 相对路径以 text-lora/ 为基准；~ 会由检查脚本展开。
+default_model = "qwen3_5_4b"
+
+[models.qwen3_5_4b]
+name = "Qwen3.5-4B"
+path = "~/hf-mirror/Qwen/Qwen3.5-4B"
+model_type = "qwen3_5"
+
+[models.qwen3_4b_instruct]
+name = "Qwen3-4B-Instruct-2507"
+path = "~/hf-mirror/Qwen/Qwen3-4B-Instruct-2507"
+model_type = "qwen3"

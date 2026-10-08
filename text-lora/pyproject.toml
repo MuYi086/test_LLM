@@ -1,0 +1,54 @@
+[project]
+name = "qwen-text-lora"
+version = "0.1.0"
+description = "Local Qwen3.5-4B text LoRA practice with ms-swift and Jupyter kernels"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # 依赖变更后由你手动 uv sync，同步 .venv 和 uv.lock。
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "ms-swift==4.5.3",
+    # Qwen3.5 需要 Transformers 5.x 的架构支持。
+    "transformers>=5.2,<6",
+    "peft>=0.18,<0.20",
+    "datasets>=4.0,<4.8.5",
+    "accelerate>=1.0,<2",
+    "modelscope>=1.23,<2",
+    "qwen-vl-utils>=0.0.14,<0.1",
+    # JupyterLab 服务由全局 uv tool 管理，这里只维护项目 kernel。
+    "ipykernel>=6.29,<8",
+    # tqdm 的 Notebook 图形进度条需要 kernel 中的 widgets。
+    "ipywidgets>=8.1,<9",
+]
+
+[dependency-groups]
+dev = ["ruff>=0.15.9,<0.16"]
+
+[tool.uv]
+package = false
+index-strategy = "first-index"
+
+# 普通依赖沿用仓库中的阿里云 PyPI 镜像。
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+# CUDA wheel 显式绑定，避免误装 CPU 版；与现有部署目录的 cu130 路线一致。
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130", marker = "sys_platform == 'linux'" }
+torchvision = { index = "pytorch-cu130", marker = "sys_platform == 'linux'" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

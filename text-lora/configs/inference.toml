@@ -1,0 +1,11 @@
+# 基线与未来 adapter 对照使用同一份设置。
+# temperature=0 使用贪心解码，减少采样随机性；不保证跨硬件逐位一致。
+[inference]
+max_tokens = 384
+temperature = 0.0
+top_p = 1.0
+repetition_penalty = 1.0
+seed = 42
+enable_thinking = false
+device = "cuda:0"
+attn_impl = "sdpa"
