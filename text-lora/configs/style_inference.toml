@@ -1,0 +1,11 @@
+# 新风格测试单独使用；不改动第一轮与第二轮固定推理设置。
+# 给较长的演绎稿留足空间，实际是否截断仍检查 finish_reason。
+[inference]
+max_tokens = 768
+temperature = 0.0
+top_p = 1.0
+repetition_penalty = 1.0
+seed = 42
+enable_thinking = false
+device = "cuda:0"
+attn_impl = "sdpa"

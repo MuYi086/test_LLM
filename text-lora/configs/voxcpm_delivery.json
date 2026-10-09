@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "default_strength": "moderate",
+  "neutral_instruction": "用自然平稳的语气朗读，语速适中，吐字清晰。",
+  "tones": {
+    "平静": {"instruction": "用自然平稳的语气朗读，语速适中，吐字清晰。", "pause_ms": 220},
+    "冷静": {"instruction": "用沉稳克制的语气朗读，语速适中，吐字清晰。", "pause_ms": 220},
+    "压低": {"instruction": "压低声音朗读，语速稍慢，保持吐字清晰。", "pause_ms": 300},
+    "低声": {"instruction": "用低声说话的方式朗读，保持清晰，不要耳语。", "pause_ms": 280},
+    "紧绷": {"instruction": "用克制而紧张的语气朗读，语速稍慢，吐字清晰。", "pause_ms": 320},
+    "迟疑": {"instruction": "用略带迟疑的语气朗读，语速稍慢，吐字清晰。", "pause_ms": 320},
+    "疑问": {"instruction": "用自然的疑问语气朗读，句尾略微上扬，吐字清晰。", "pause_ms": 240},
+    "急促": {"instruction": "用急促的语气朗读，语速稍快，仍保持吐字清晰。", "pause_ms": 160},
+    "颤声": {"instruction": "用轻微颤抖的声音朗读，保持清晰，避免夸张。", "pause_ms": 320},
+    "大喊": {"instruction": "用提高音量呼喊的方式说话，吐字清晰，避免尖叫。", "pause_ms": 180}
+  },
+  "strength_suffix": {
+    "mild": "情绪变化要轻微，整体接近自然叙述。",
+    "moderate": "情绪表达适度，保持连贯自然。",
+    "strong": "让已有的情绪更明显，仍保持清晰自然，不增加额外声音。"
+  },
+  "max_segment_chars": 240,
+  "request_timeout_seconds": 600,
+  "seed": 42
+}

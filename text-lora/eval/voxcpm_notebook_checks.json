@@ -1,0 +1,30 @@
+{
+  "kernel": "text-lora",
+  "independent_execution_order": [
+    3,
+    2,
+    1
+  ],
+  "checks": [
+    {
+      "cell_index": 6,
+      "audio_players": 0,
+      "errors": [],
+      "messages": 22
+    },
+    {
+      "cell_index": 4,
+      "audio_players": 7,
+      "errors": [],
+      "messages": 23
+    },
+    {
+      "cell_index": 2,
+      "audio_players": 0,
+      "errors": [],
+      "messages": 5
+    }
+  ],
+  "heavy_modules_imported": false,
+  "models_or_services_started": false
+}

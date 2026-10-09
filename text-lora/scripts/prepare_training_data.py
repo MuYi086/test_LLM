@@ -133,6 +133,10 @@ def validate_content_checks(sample):
 
 def validate_corpus(corpus_path=CORPUS):
     corpus = json.loads(Path(corpus_path).read_text(encoding="utf-8"))
+    if corpus.get("style_profile") in {"suspense-v1", "suspense-voxcpm-v2"}:
+        from prepare_style_data import validate_style_corpus
+
+        return validate_style_corpus(corpus_path)
     samples = corpus["samples"]
     prompts = load_prompts()
     isolation_prompts = prompts + benchmark_prompts()
@@ -291,6 +295,14 @@ def main():
     parser.add_argument("--corpus", type=Path, default=CORPUS, help="语料文件；新版本独立导出")
     parser.add_argument("--check-tokens", action="store_true", help="CPU 离线模板检查，不加载权重")
     args = parser.parse_args()
+    if json.loads(args.corpus.read_text(encoding="utf-8")).get("style_profile") in {
+        "suspense-v1",
+        "suspense-voxcpm-v2",
+    }:
+        from prepare_style_data import prepare
+
+        prepare(args.corpus, args.check_tokens)
+        return 0
     samples, prompts = validate_corpus(args.corpus)
     export_data(samples, args.corpus)
     check_exported_data(samples, args.corpus)

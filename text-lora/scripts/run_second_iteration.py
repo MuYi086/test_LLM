@@ -1,11 +1,15 @@
 """一键执行第二轮数据检查、LoRA 训练与原模型/两轮 adapter 对照。"""
 
 import argparse
+import fcntl
 import hashlib
 import json
+import os
+import re
 import signal
 import subprocess
 import sys
+from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime
 from importlib.metadata import version
@@ -25,13 +29,48 @@ from prepare_training_data import (
 )
 from run_inference import load_inference_config, prompts_fingerprint
 from train_lora import verify_adapter
+from view_second_iteration import stage_title
 
 CORPUS_V2 = PROJECT_ROOT / "datasets/teaching_samples_v2.json"
 LATEST = PROJECT_ROOT / "outputs/latest_iteration2.json"
+LOCK = PROJECT_ROOT / "outputs/iteration2.lock"
 
 
 def handle_stop(signum, frame):
     raise KeyboardInterrupt("第二轮执行已中断")
+
+
+@contextmanager
+def iteration_lock():
+    """阻止两个 Notebook/kernel 同时启动同一条单卡实验流程。"""
+    LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with LOCK.open("a+") as handle:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            yield False
+            return
+        try:
+            yield True
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def progress_message(label, line):
+    line = line.strip()
+    title = stage_title(label)
+    match = re.match(r"^\[(\d+)/(\d+)\]\s+(.+)$", line)
+    if match:
+        current, total, identifier = match.groups()
+        return f"[PROGRESS] [{title}] 正在推理第 {current}/{total} 条：{identifier}"
+    if "[PASS] 训练完成" in line:
+        next_action = "随后继续正式训练" if label == "train-smoke" else "随后继续推理与报告"
+        return f"[PASS] [{title}] 当前训练阶段通过；{next_action}。全流程结束以 [COMPLETE] 为准。"
+    if any(tag in line for tag in ("{'loss':", "{'eval_loss':")):
+        return f"[PROGRESS] [{title}] {line}"
+    if "[PASS]" in line or "推理完成" in line:
+        return f"[PASS] [{title}] {line.removeprefix('[PASS]').strip()}"
+    return None
 
 
 def current_state(corpus):
@@ -84,7 +123,7 @@ def current_state(corpus):
 def run_stage(root, label, script, *arguments):
     command = [sys.executable, "-u", str(PROJECT_ROOT / "scripts" / script), *map(str, arguments)]
     log_path = root / f"{label}.log"
-    print(f"[RUN] {label}；完整日志：{log_path}", flush=True)
+    print(f"[RUN] [STAGE {stage_title(label)}]；完整日志：{log_path}", flush=True)
     process = subprocess.Popen(
         command,
         cwd=PROJECT_ROOT,
@@ -98,8 +137,9 @@ def run_stage(root, label, script, *arguments):
             for line in process.stdout:
                 log.write(line)
                 log.flush()
-                if any(tag in line for tag in ("[PASS]", "{'loss':", "{'eval_loss':", "推理完成")):
-                    print(line.strip(), flush=True)
+                message = progress_message(label, line)
+                if message:
+                    print(message, flush=True)
         code = process.wait()
     except BaseException:
         process.terminate()
@@ -114,6 +154,7 @@ def run_stage(root, label, script, *arguments):
     if code:
         print(log_path.read_text(encoding="utf-8")[-12000:], flush=True)
         raise RuntimeError(f"{label} 失败，exit={code}")
+    print(f"[PASS] [STAGE-DONE {stage_title(label)}] 本阶段完成。", flush=True)
 
 
 def reuse_completed(state):
@@ -149,10 +190,23 @@ def main():
             "新10条原模型/第一轮/第二轮推理 → 两份三组对照。未启动GPU任务。"
         )
         return 0
-    if not args.new_run:
+    with iteration_lock() as acquired:
+        if not acquired:
+            print(
+                "[STATUS] 第二轮已有执行任务；本次调用未启动新任务。步骤 3 可查看最新状态。",
+                flush=True,
+            )
+            return 0
+        return execute_iteration(args.corpus, state, args.new_run)
+
+
+def execute_iteration(corpus, state, new_run=False):
+    if not new_run:
         existing = reuse_completed(state)
         if existing:
-            print(f"[PASS] 复用已完成且配置匹配的第二轮：{existing}")
+            print(
+                f"[PASS] [COMPLETE] 第二轮 9/9 阶段已完成，复用结果：{existing}。直接运行步骤 3。"
+            )
             return 0
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S_%fZ")
     root = PROJECT_ROOT / "outputs" / f"iteration2-{stamp}"
@@ -163,18 +217,20 @@ def main():
         "created_at": datetime.now(UTC).isoformat(),
         "state": state,
         "stage": "checks",
+        "controller_pid": os.getpid(),
     }
 
     def save():
-        (root / "iteration_metadata.json").write_text(
+        path = root / "iteration_metadata.json"
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(
             json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        temporary.replace(path)
 
     save()
     try:
-        run_stage(
-            root, "checks", "prepare_training_data.py", "--corpus", args.corpus, "--check-tokens"
-        )
+        run_stage(root, "checks", "prepare_training_data.py", "--corpus", corpus, "--check-tokens")
         for mode in ("smoke", "full"):
             metadata["stage"] = "train-" + mode
             save()
@@ -183,7 +239,7 @@ def main():
                 "train-" + mode,
                 "train_lora.py",
                 "--corpus",
-                args.corpus,
+                corpus,
                 "--mode",
                 mode,
                 "--output-dir",
@@ -244,15 +300,17 @@ def main():
             status="complete", stage="complete", finished_at=datetime.now(UTC).isoformat()
         )
         save()
-        LATEST.write_text(
+        temporary_receipt = LATEST.with_suffix(".tmp")
+        temporary_receipt.write_text(
             json.dumps({"run_dir": str(root)}, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
+        temporary_receipt.replace(LATEST)
     except BaseException as error:
         metadata.update(status="failed", error=f"{type(error).__name__}: {error}")
         save()
         raise
-    print(f"[PASS] 第二轮训练与两份对照完成：{root}；内容改善请按检查项逐条评审。")
+    print(f"[PASS] [COMPLETE] 第二轮 9/9 阶段全部完成：{root}。现在可运行步骤 3 查看两份对照。")
     return 0
 
 

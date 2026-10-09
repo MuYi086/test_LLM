@@ -14,7 +14,8 @@ text-lora/
 │   ├── 02_base_inference.ipynb     # 单条推理、10 条固定测试与原模型基线
 │   ├── 03_dataset_preparation.ipynb # 固定标注写法、5 条样本、检查与导出
 │   ├── 04_lora_training.ipynb      # 数据监督、3 步试跑、3 轮训练与固定测试对照
-│   └── 05_data_iteration.ipynb     # 第二轮 50/12 数据与原模型/两轮 LoRA 对照
+│   ├── 05_data_iteration.ipynb     # 第二轮 50/12 数据与原模型/两轮 LoRA 对照
+│   └── 06_suspense_style_lora.ipynb # 面向 TTS 的悬疑措辞、节奏与演绎风格
 ├── scripts/
 │   ├── check_environment.py        # 环境检查
 │   ├── run_inference.py            # 基线与 adapter 推理共用入口
@@ -22,7 +23,12 @@ text-lora/
 │   ├── train_lora.py               # smoke/full 训练与 checkpoint 核验
 │   ├── compare_inference.py        # 配置核对、按 ID 生成输出对照
 │   ├── compare_iterations.py       # 原模型、第一轮、第二轮三组对照
-│   └── run_second_iteration.py     # 第二轮一键检查、训练与评估
+│   ├── run_second_iteration.py     # 第二轮一键检查、训练与评估
+│   ├── view_second_iteration.py    # 独立只读状态与报告入口
+│   ├── prepare_style_data.py      # 新风格语料、目标约束与 CPU 模板检查
+│   ├── run_style_iteration.py     # 8 阶段风格实验，完整结果自动复用
+│   ├── export_style_results.py    # 无标签朗读正文与角色/语气清单
+│   └── view_style_results.py      # 独立只读样稿、状态与结果查看
 ├── eval/                          # 固定测试提示词与人工检查标准
 ├── datasets/                      # SFT 数据约定与 annotation_guide.md 标注指南
 └── outputs/                        # 后续 adapter、checkpoint、评估结果
@@ -221,6 +227,40 @@ uv run --no-sync --no-python-downloads python scripts/train_lora.py --mode full
 
 第一轮有 5 条演绎稿仍存在动作遗漏、直接台词归属或重复问题。下一步打开 [notebooks/05_data_iteration.ipynb](notebooks/05_data_iteration.ipynb)：步骤 1 监督新增数据，步骤 2 一个 Cell 自动训练与评估，步骤 3 审阅原模型/第一轮/第二轮的两份对照。用户继续以监督和决策为主，agent 负责具体数据与执行工作。
 
-[第二轮方案与核对记录](datasets/iteration2_review.md)已落实为 50 条训练、12 条验证，完整模板最长 235 tokens；另写并固定 10 条未见测试及参考写法。数据独立保存在 teaching-v2，第一轮数据、Notebook、checkpoint 与复用记录保留。新增动作/台词约束、来源隔离、模板与训练参数预检查已通过；第二轮 GPU 训练尚未执行，效果须待实际输出评审。
+[第二轮方案与核对记录](datasets/iteration2_review.md)已落实为 50 条训练、12 条验证，完整模板最长 235 tokens；另写并固定 10 条未见测试及参考写法。2026-10-09 用户已完成 3 步试跑、21 步正式训练、40 条生成与两份对照。[第二轮 agent 内容评审](eval/lora_review_20261009.md)已逐条核对：原有 8 条改写由第一轮 3/8 到第二轮 7/8，新 8 条由 5/8 到 8/8；仍有动作遗漏与普通解释细节不足，建议先用更复杂的独立文本验收。数据独立保存在 teaching-v2，第一轮数据、Notebook、checkpoint 与复用记录保留。
 
 入口 `scripts/run_second_iteration.py --dry-run` 可只检查计划；执行时自动完成试跑、正式训练、原测试第二轮生成、新测试三组生成与报告。按验证 loss 选模型，测试参考不进入模型输入或训练。成功记录到 `outputs/latest_iteration2.json`，再次运行复用匹配的完整结果。
+
+步骤 2 包含 9 个阶段，中间训练通过后还会继续生成和报告；以最后的 `[COMPLETE]` 和 Cell `[*]` 消失作为整轮完成标志。步骤 3 使用 `view_second_iteration.py` 独立读取状态和已有报告，重新打开 Notebook 后可直接执行。执行器显示阶段/逐条推理进度，并拦截并发启动，避免误触新的 GPU 任务。
+
+## 第六阶段：明确恐惧悬疑小说的 TTS 改写目标
+
+用户已明确希望训练一种让恐惧悬疑小说更适合有氛围感朗读的 LoRA。前两轮的保守样本主要验证角色、标签与事实保留，不能用它们的内容通过率代替风格和实际听感验收。
+
+新入口为 [06_suspense_style_lora.ipynb](notebooks/06_suspense_style_lora.ipynb)。agent 已另写 30 条训练、10 条验证和 10 条独立测试，使用 [悬疑风格约定](datasets/suspense_style_guide.md)：适度调整措辞、断句和语气，突出已有线索，保留动作和直接台词，不新增情节。先看 [五条样稿摘要](datasets/suspense_samples_review.md)；完整语料在 `datasets/suspense_samples_v1.json`，独立导出为 teaching-v3，最长完整模板 267 tokens。
+
+Notebook 的三个代码 Cell 各自独立：步骤 1 只读监督样稿；步骤 2 自动执行或复用 8 阶段实验；步骤 3 只读查看摘要、agent 评审和三组内容对照。三组为原模型、第二轮保守 LoRA、新风格 LoRA，使用同一份新风格指令及独立的 `configs/style_inference.toml`；本次输出上限为 768，不改前两轮固定配置。checkpoint 仍按独立验证 loss 选择。
+
+运行结果记录在 `outputs/latest_suspense_run.json`。导出各小说候选的 `speech.txt`（无角色/语气标记）和 `performance.json`（逐句角色、语气和正文）；具体 TTS 确定后再映射到语音控制。本阶段先检查文本，音频氛围需实际试听。数据、脚本、实验与逐条核对由 agent 负责，用户监督改写强度与决定是否采用。
+
+2026-10-09 agent 已完成第一版风格实验：3 步试跑、12 步正式训练、30 条生成、对照和朗读候选导出。[逐条评审](eval/suspense_review_20261009.md)确认学到了短句和语气变化，也记录了复杂场景动作遗漏、一次新增细节、平稳场景过度渲染及普通解释错误。Notebook 06 已在独立 kernel 验证查看与结果复用，并保存真实输出；步骤 2 已执行完成，用户可直接监督步骤 1 与步骤 3。
+
+## 第七阶段：方案 A，VoxCPM2 可控克隆
+
+用户已选择“悬疑演绎稿 LoRA + VoxCPM2 可控克隆”。新监督入口为 [07_voxcpm_style_review.ipynb](notebooks/07_voxcpm_style_review.ipynb)：步骤 1 查看完成状态，步骤 2 播放真实音频对照，步骤 3 查看新训练评审并保存演绎强度意见。三个 Cell 可独立运行，只查看本地结果，不启动模型服务、不执行训练，不需要重跑 05 或 06。
+
+`[角色][语气]` 是中间稿：`scripts/voxcpm_adapter.py` 解析角色与语气，把角色映射到参考音色，把语气映射到 [控制词典](configs/voxcpm_delivery.json)。HTTP `text` 仅含正文；可控模式使用 `clone_mode=controllable` 和 `control_instruction`，不传 `prompt_text`、`style_prompt` 或非语言标签。相邻同角色同语气合并，跨请求停顿由拼接器添加；平静段落不随强度选择变成紧张段落。
+
+第一轮 7 份真实试听由两条同旁白的“原文平读 / 改写后平读 / 可控演绎”和一条三角色示范组成，记录见 `outputs/latest_voxcpm_audition.json`。素材来自已有风格 LoRA 的已审阅稿，平稳片段的语气由 agent 修订；它们用于验证声音控制方向，不代表第二版新模型的声音结果。用户现有三份合成音色暂作参考。每次请求、音频参数和稿件来源保留；WAV 结构与非静音检查不能代替听感和漏读检查。
+
+新语料 [suspense_voxcpm_v2.json](datasets/suspense_voxcpm_v2.json) 为 42 训练 / 14 验证，独立导出 teaching-v4；保留旧数据，修订四处目标，并加入长动作链、对象和位置、多人对白、平稳反例及普通任务。另留 10 条全新测试，见 `eval/voxcpm_benchmark_v2.json`，推理输入另存且不含参考答案。新训练指针为 `outputs/latest_voxcpm_style_run.json`，与第一版分开。
+
+agent 维护和执行的命令如下，用户监督无需重复执行：
+
+```bash
+.venv/bin/python scripts/prepare_style_data.py --corpus datasets/suspense_voxcpm_v2.json --check-tokens
+.venv/bin/python scripts/run_style_iteration.py --corpus datasets/suspense_voxcpm_v2.json
+.venv/bin/python scripts/run_voxcpm_audition.py
+```
+
+完整且输入一致的训练或试听会复用结果。最后一个命令默认仅复用手动启动的 VoxCPM2 服务；服务不存在时提示手动 `bash start.sh`，不会自动占用端口。只有显式 `--start-service` 才允许临时启动本机 API，结束后关闭本次进程。Notebook 07 始终不启动服务。真实 GPU 操作需与本地语音服务共享 GPU 文件锁，避免训练与语音推理同时占显存。

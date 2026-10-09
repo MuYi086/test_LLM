@@ -7,7 +7,7 @@ from pathlib import Path
 from compare_inference import body_and_format, load_run
 
 
-def compare_iterations(base_dir, first_dir, second_dir, output_dir, references=None):
+def compare_iterations(base_dir, first_dir, second_dir, output_dir, references=None, labels=None):
     runs = [load_run(path) for path in (base_dir, first_dir, second_dir)]
     metadata = [run[0] for run in runs]
     if [m["kind"] for m in metadata] != ["base", "lora", "lora"]:
@@ -25,17 +25,19 @@ def compare_iterations(base_dir, first_dir, second_dir, output_dir, references=N
         reference_map = {case["id"]: case for case in json.loads(references.read_text())["cases"]}
         if set(reference_map) != set(ids):
             raise ValueError("参考集 ID 与实际测试不一致")
-    labels = ["原模型", "第一轮 LoRA", "第二轮 LoRA"]
+    labels = labels or ["原模型", "第一轮 LoRA", "第二轮 LoRA"]
+    if len(labels) != 3 or any(not isinstance(label, str) or not label.strip() for label in labels):
+        raise ValueError("需要三个非空模型名称")
     metrics, report = (
         [],
         [
-            "# 原模型 / 第一轮 / 第二轮输出对照",
+            "# " + " / ".join(labels) + "输出对照",
             "",
             "三组模型配置、输入哈希、依赖版本和解码设置相同，按 ID 对齐。",
             "格式检查只去除开头空 think 块；原始输出仍全部保留。",
             "表中通过只代表双标签与非空正文（允许标签后空格）；内容须阅读原文和检查项。",
             "",
-            "| ID | 原模型格式 | 第一轮格式 | 第二轮格式 |",
+            "| ID | " + " | ".join(label + "格式" for label in labels) + " |",
             "| --- | --- | --- | --- |",
         ],
     )
@@ -92,8 +94,11 @@ def main():
     for name in ("base", "first", "second", "output-dir"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--references", type=Path)
+    parser.add_argument("--labels", nargs=3, help="三组显示名称；默认保持原有两轮名称")
     args = parser.parse_args()
-    compare_iterations(args.base, args.first, args.second, args.output_dir, args.references)
+    compare_iterations(
+        args.base, args.first, args.second, args.output_dir, args.references, args.labels
+    )
 
 
 if __name__ == "__main__":
