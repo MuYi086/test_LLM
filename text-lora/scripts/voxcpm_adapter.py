@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 LINE = re.compile(r"^\[([^\[\]\n]+)\]\[([^\[\]\n]+)\](\S.*)$")
@@ -20,9 +21,37 @@ def load_delivery(path=ROOT / "configs/voxcpm_delivery.json"):
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if data["schema_version"] != 1 or data["max_segment_chars"] <= 0:
         raise ValueError("演绎配置无效")
+    if data["default_strength"] not in data["strength_suffix"]:
+        raise ValueError("默认强度不存在")
     for tone, spec in data["tones"].items():
         if not tone or not spec["instruction"].strip() or not 0 <= spec["pause_ms"] <= 2000:
             raise ValueError("演绎语气配置无效")
+    for strength, profile in data.get("profiles", {}).items():
+        if strength not in data["strength_suffix"] or not 0 <= profile.get("pause_ms", 0) <= 2000:
+            raise ValueError("强度配置无效")
+        if (
+            set(profile.get("instructions", {})) | set(profile.get("dialogue_instructions", {}))
+        ) - set(data["tones"]):
+            raise ValueError("强度配置含未知语气")
+        if profile.get("narrator_tone", "平静") not in data["tones"]:
+            raise ValueError("旁白默认语气无效")
+        if profile.get("pause_mode", "additive") not in {"additive", "target_gap"}:
+            raise ValueError("停顿模式无效")
+        if not 0.85 <= profile.get("tempo", 1) <= 1:
+            raise ValueError("本轮仅支持轻微放缓语速")
+        transitions = profile.get("transition_pause_ms", {})
+        if set(transitions) - {
+            "same_speaker",
+            "narrator_to_dialogue",
+            "dialogue_to_narrator",
+            "dialogue_change",
+        } or any(not 0 <= value <= 2000 for value in transitions.values()):
+            raise ValueError("角色切换停顿配置无效")
+        punctuation = profile.get("punctuation_pause_ms", {})
+        if set(punctuation) - {"clause_end", "sentence_end"} or any(
+            not 0 <= value <= 2000 for value in punctuation.values()
+        ):
+            raise ValueError("同人物标点停顿配置无效")
     return data
 
 
@@ -53,6 +82,22 @@ def verify_review(case, rows):
         reviewed
     ):
         raise ValueError("需要与当前原文及演绎稿一致的 agent 审阅记录")
+    if "original_script" in case:
+        # 标点修订必须保留全部正文字符及其顺序；对白另按人物、文字和次数核对。
+        original = parse_script(
+            case["original_script"], case["allowed_roles"], load_delivery()["tones"]
+        )
+
+        def content(lines):
+            return "".join(
+                c
+                for row in lines
+                for c in row["text"]
+                if not c.isspace() and not unicodedata.category(c).startswith("P")
+            )
+
+        if content(original) != content(rows):
+            raise ValueError("标点修订改变了正文内容或顺序")
     for fact in case["fact_checks"]:
         if not fact["source"] or fact["source"] not in case["source_text"]:
             raise ValueError("事实检查没有原文来源")
@@ -72,10 +117,12 @@ def verify_review(case, rows):
             raise ValueError(f"直接对白归属或次数错误：{speech['text']}")
 
 
-def compile_segments(rows, voices, delivery, strength="moderate", controlled=True):
+def compile_segments(rows, voices, delivery, strength=None, controlled=True):
     """合并相邻同人物同语气的稿件，保留边界停顿并生成合法请求。"""
+    strength = strength or delivery["default_strength"]
     if strength not in delivery["strength_suffix"]:
         raise ValueError("未知演绎强度")
+    profile = delivery.get("profiles", {}).get(strength, {}) if controlled else {}
     merged = []
     limit = delivery["max_segment_chars"]
     for row in rows:
@@ -83,27 +130,56 @@ def compile_segments(rows, voices, delivery, strength="moderate", controlled=Tru
             raise ValueError(f"人物没有参考音色：{row['speaker']}")
         if len(row["text"]) > limit:
             raise ValueError("单行超过合成长度限制，需要先按句拆分和审阅")
-        key = (row["speaker"], row["tone"] if controlled else "平静")
+        tone_key = row["tone"] if controlled else "平静"
+        key = (row["speaker"], None if profile.get("merge_adjacent_speaker") else tone_key)
         if (
             merged
             and merged[-1]["key"] == key
             and len(merged[-1]["text"]) + len(row["text"]) <= limit
         ):
             merged[-1]["text"] += row["text"]
+            merged[-1]["tone_weights"].append((tone_key, len(row["text"])))
         else:
-            merged.append({"key": key, "text": row["text"]})
+            merged.append(
+                {"key": key, "text": row["text"], "tone_weights": [(tone_key, len(row["text"]))]}
+            )
     result = []
     for group in merged:
         speaker, tone = group["key"]
+        source_tones = list(dict.fromkeys(t for t, _ in group["tone_weights"]))
+        if tone is None:
+            weights = {
+                t: sum(w for label, w in group["tone_weights"] if label == t) for t in source_tones
+            }
+            tone = max(weights, key=weights.get)
+        # 轻演绎不因一句紧绷而给整段旁白施加紧张指令；原标签留在来源记录中。
+        if speaker == "旁白" and profile.get("narrator_tone"):
+            tone = profile["narrator_tone"]
         spec = delivery["tones"][tone]
         instruction = spec["instruction"] if controlled else delivery["neutral_instruction"]
-        if controlled and tone not in {"平静", "冷静"}:
+        instruction = profile.get("instructions", {}).get(tone, instruction)
+        if speaker != "旁白":
+            instruction = profile.get("dialogue_instructions", {}).get(tone, instruction)
+        if (
+            speaker == "旁白"
+            and profile.get("narrator_variation_instruction")
+            and set(source_tones) - {"平静", "冷静"}
+        ):
+            # 整段一次生成轻微起伏，保留句间韵律；平稳稿件仍使用原平静指令。
+            instruction = profile["narrator_variation_instruction"]
+        if (
+            controlled
+            and tone not in {"平静", "冷静"}
+            and profile.get("append_strength_suffix", True)
+        ):
             instruction += delivery["strength_suffix"][strength]
         result.append(
             {
                 "speaker": speaker,
                 "tone": tone,
-                "pause_after_ms": spec["pause_ms"],
+                "source_tones": source_tones,
+                "pause_after_ms": profile.get("pause_ms", spec["pause_ms"]),
+                "pause_mode": profile.get("pause_mode", "additive"),
                 "request": {
                     "text": group["text"],
                     "audio_path": voices[speaker],
@@ -114,4 +190,26 @@ def compile_segments(rows, voices, delivery, strength="moderate", controlled=Tru
                 },
             }
         )
+    for index, segment in enumerate(result):
+        if index + 1 == len(result):
+            transition = "end"
+        else:
+            speaker, next_speaker = segment["speaker"], result[index + 1]["speaker"]
+            if speaker == next_speaker:
+                transition = "same_speaker"
+            elif speaker == "旁白":
+                transition = "narrator_to_dialogue"
+            elif next_speaker == "旁白":
+                transition = "dialogue_to_narrator"
+            else:
+                transition = "dialogue_change"
+        segment["transition_after"] = transition
+        if transition in profile.get("transition_pause_ms", {}):
+            segment["pause_after_ms"] = profile["transition_pause_ms"][transition]
+        if transition == "same_speaker" and profile.get("punctuation_pause_ms"):
+            text = segment["request"]["text"].rstrip("”’\"'）)")
+            punctuation = "sentence_end" if text.endswith(tuple("。！？.!?")) else "clause_end"
+            segment["pause_after_ms"] = profile["punctuation_pause_ms"][punctuation]
+        if transition == "end" and segment["pause_mode"] == "target_gap":
+            segment["pause_after_ms"] = 0
     return result

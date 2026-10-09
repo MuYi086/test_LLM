@@ -1,23 +1,221 @@
 {
   "schema_version": 1,
-  "default_strength": "moderate",
-  "neutral_instruction": "用自然平稳的语气朗读，语速适中，吐字清晰。",
+  "default_strength": "mild",
+  "neutral_instruction": "用平和的日常语气说话，语速适中。",
   "tones": {
-    "平静": {"instruction": "用自然平稳的语气朗读，语速适中，吐字清晰。", "pause_ms": 220},
-    "冷静": {"instruction": "用沉稳克制的语气朗读，语速适中，吐字清晰。", "pause_ms": 220},
-    "压低": {"instruction": "压低声音朗读，语速稍慢，保持吐字清晰。", "pause_ms": 300},
-    "低声": {"instruction": "用低声说话的方式朗读，保持清晰，不要耳语。", "pause_ms": 280},
-    "紧绷": {"instruction": "用克制而紧张的语气朗读，语速稍慢，吐字清晰。", "pause_ms": 320},
-    "迟疑": {"instruction": "用略带迟疑的语气朗读，语速稍慢，吐字清晰。", "pause_ms": 320},
-    "疑问": {"instruction": "用自然的疑问语气朗读，句尾略微上扬，吐字清晰。", "pause_ms": 240},
-    "急促": {"instruction": "用急促的语气朗读，语速稍快，仍保持吐字清晰。", "pause_ms": 160},
-    "颤声": {"instruction": "用轻微颤抖的声音朗读，保持清晰，避免夸张。", "pause_ms": 320},
-    "大喊": {"instruction": "用提高音量呼喊的方式说话，吐字清晰，避免尖叫。", "pause_ms": 180}
+    "平静": {
+      "instruction": "用平和的日常语气说话，语速适中。",
+      "pause_ms": 220
+    },
+    "冷静": {
+      "instruction": "用平和的日常语气说话，语速适中。",
+      "pause_ms": 220
+    },
+    "压低": {
+      "instruction": "压低声音朗读，语速稍慢，保持吐字清晰。",
+      "pause_ms": 300
+    },
+    "低声": {
+      "instruction": "用低声说话的方式朗读，保持清晰，不要耳语。",
+      "pause_ms": 280
+    },
+    "紧绷": {
+      "instruction": "用克制而紧张的语气朗读，语速稍慢，吐字清晰。",
+      "pause_ms": 320
+    },
+    "迟疑": {
+      "instruction": "用略带迟疑的语气朗读，语速稍慢，吐字清晰。",
+      "pause_ms": 320
+    },
+    "疑问": {
+      "instruction": "用自然的疑问语气朗读，句尾略微上扬，吐字清晰。",
+      "pause_ms": 240
+    },
+    "急促": {
+      "instruction": "用急促的语气朗读，语速稍快，仍保持吐字清晰。",
+      "pause_ms": 160
+    },
+    "颤声": {
+      "instruction": "用轻微颤抖的声音朗读，保持清晰，避免夸张。",
+      "pause_ms": 320
+    },
+    "大喊": {
+      "instruction": "用提高音量呼喊的方式说话，吐字清晰，避免尖叫。",
+      "pause_ms": 180
+    }
   },
   "strength_suffix": {
-    "mild": "情绪变化要轻微，整体接近自然叙述。",
+    "mild": "",
     "moderate": "情绪表达适度，保持连贯自然。",
     "strong": "让已有的情绪更明显，仍保持清晰自然，不增加额外声音。"
+  },
+  "profiles": {
+    "mild": {
+      "merge_adjacent_speaker": true,
+      "narrator_tone": "平静",
+      "narrator_variation_instruction": "用自然的讲述语气朗读，语气有细微起伏，整体平稳，语速适中。",
+      "tempo": 0.94,
+      "pause_ms": 400,
+      "pause_mode": "target_gap",
+      "transition_pause_ms": {
+        "same_speaker": 180,
+        "narrator_to_dialogue": 400,
+        "dialogue_to_narrator": 500,
+        "dialogue_change": 650
+      },
+      "instructions": {
+        "冷静": "用平和的日常语气说话，语速适中。",
+        "压低": "用日常交谈的语气自然说话，语速适中。",
+        "低声": "用日常交谈的语气自然说话，语速适中。",
+        "紧绷": "用自然平稳的语气说话，语速适中。",
+        "迟疑": "语气略带迟疑，保持自然语速。",
+        "疑问": "用日常交谈的语气自然说话，语速适中。",
+        "急促": "语气略急，吐字清晰。",
+        "颤声": "声音略有颤动，保持自然。",
+        "大喊": "稍提高声音呼喊，保持清晰。"
+      },
+      "edge_trim": {
+        "threshold_pcm": 32,
+        "keep_ms": 80,
+        "max_trim_ms": 1200,
+        "trim_exact_zeros": true
+      },
+      "loudness": {
+        "target_lufs": -23,
+        "speaker_offsets_lu": {
+          "洛洵": -1
+        },
+        "true_peak_dbtp": -2,
+        "max_gain_db": 24,
+        "max_attenuation_db": 24
+      }
+    },
+    "strong": {
+      "merge_adjacent_speaker": false,
+      "tempo": 0.94,
+      "pause_ms": 400,
+      "pause_mode": "target_gap",
+      "transition_pause_ms": {
+        "same_speaker": 180,
+        "narrator_to_dialogue": 400,
+        "dialogue_to_narrator": 500,
+        "dialogue_change": 650
+      },
+      "instructions": {
+        "冷静": "用平和的日常语气说话，语速适中。",
+        "压低": "用轻声的日常语气说话，语速适中。",
+        "低声": "用日常交谈的语气自然说话，语速适中。",
+        "紧绷": "用紧张而克制的语气讲述，重音落在反常之处，语速适中。",
+        "迟疑": "用带有明显犹疑的语气讲述，表达拿不准的感觉，语速适中。",
+        "疑问": "用日常交谈的语气自然说话，语速适中。",
+        "急促": "语气略急，吐字清晰。",
+        "颤声": "声音略有颤动，保持自然。",
+        "大喊": "稍提高声音呼喊，保持清晰。",
+        "平静": "用平和的日常语气说话，语速适中。"
+      },
+      "edge_trim": {
+        "threshold_pcm": 32,
+        "keep_ms": 80,
+        "max_trim_ms": 1200,
+        "trim_exact_zeros": true
+      },
+      "loudness": {
+        "target_lufs": -23,
+        "speaker_offsets_lu": {
+          "洛洵": -1
+        },
+        "true_peak_dbtp": -2,
+        "max_gain_db": 12,
+        "max_attenuation_db": 24,
+        "tone_offsets_lu": {
+          "平静": -1,
+          "冷静": -1,
+          "压低": -2,
+          "低声": -2,
+          "迟疑": -2
+        }
+      },
+      "append_strength_suffix": false,
+      "punctuation_pause_ms": {
+        "clause_end": 180,
+        "sentence_end": 350
+      },
+      "dialogue_instructions": {
+        "平静": "用平和的日常语气说话，语速适中。",
+        "冷静": "用平和的日常语气说话，语速适中。",
+        "低声": "用轻声的日常语气说话，语速适中。",
+        "压低": "用轻声的日常语气说话，语速适中。",
+        "疑问": "用平和的日常语气提问，语速适中。",
+        "迟疑": "用日常交谈的语气说话，稍有犹疑，语速适中。",
+        "紧绷": "用日常交谈的语气说话，稍带紧张，语速适中。",
+        "急促": "用日常语气短促地提醒，吐字清晰。",
+        "颤声": "用日常交谈的语气说话，声音稍有颤动。",
+        "大喊": "用自然的语气提高声音提醒，吐字清晰。"
+      }
+    },
+    "moderate": {
+      "merge_adjacent_speaker": false,
+      "tempo": 0.94,
+      "pause_ms": 400,
+      "pause_mode": "target_gap",
+      "transition_pause_ms": {
+        "same_speaker": 180,
+        "narrator_to_dialogue": 400,
+        "dialogue_to_narrator": 500,
+        "dialogue_change": 650
+      },
+      "instructions": {
+        "冷静": "用平和的日常语气说话，语速适中。",
+        "压低": "用轻声的日常语气说话，语速适中。",
+        "低声": "用日常交谈的语气自然说话，语速适中。",
+        "紧绷": "用略带紧张的语气讲述，语速适中。",
+        "迟疑": "用略带犹疑的语气讲述，语速适中。",
+        "疑问": "用日常交谈的语气自然说话，语速适中。",
+        "急促": "语气略急，吐字清晰。",
+        "颤声": "声音略有颤动，保持自然。",
+        "大喊": "稍提高声音呼喊，保持清晰。",
+        "平静": "用平和的日常语气说话，语速适中。"
+      },
+      "edge_trim": {
+        "threshold_pcm": 32,
+        "keep_ms": 80,
+        "max_trim_ms": 1200,
+        "trim_exact_zeros": true
+      },
+      "loudness": {
+        "target_lufs": -23,
+        "speaker_offsets_lu": {
+          "洛洵": -1
+        },
+        "true_peak_dbtp": -2,
+        "max_gain_db": 12,
+        "max_attenuation_db": 24,
+        "tone_offsets_lu": {
+          "平静": -1,
+          "冷静": -1,
+          "压低": -2,
+          "低声": -2,
+          "迟疑": -2
+        }
+      },
+      "append_strength_suffix": false,
+      "punctuation_pause_ms": {
+        "clause_end": 180,
+        "sentence_end": 350
+      },
+      "dialogue_instructions": {
+        "平静": "用平和的日常语气说话，语速适中。",
+        "冷静": "用平和的日常语气说话，语速适中。",
+        "低声": "用轻声的日常语气说话，语速适中。",
+        "压低": "用轻声的日常语气说话，语速适中。",
+        "疑问": "用平和的日常语气提问，语速适中。",
+        "迟疑": "用日常交谈的语气说话，稍有犹疑，语速适中。",
+        "紧绷": "用日常交谈的语气说话，稍带紧张，语速适中。",
+        "急促": "用日常语气短促地提醒，吐字清晰。",
+        "颤声": "用日常交谈的语气说话，声音稍有颤动。",
+        "大喊": "用自然的语气提高声音提醒，吐字清晰。"
+      }
+    }
   },
   "max_segment_chars": 240,
   "request_timeout_seconds": 600,

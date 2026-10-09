@@ -1,0 +1,28 @@
+{
+  "revision": 2,
+  "kernel": "text-lora",
+  "order": [
+    3,
+    2,
+    1
+  ],
+  "cells": [
+    {
+      "cell": 6,
+      "audio_players": 0,
+      "errors": []
+    },
+    {
+      "cell": 4,
+      "audio_players": 6,
+      "errors": []
+    },
+    {
+      "cell": 2,
+      "audio_players": 0,
+      "errors": []
+    }
+  ],
+  "heavy_modules_imported": false,
+  "models_or_services_started": false
+}

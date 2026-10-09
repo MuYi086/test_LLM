@@ -178,29 +178,104 @@ def wav_info(data):
     }, pcm
 
 
-def join_segments(paths, pauses, output):
-    """在请求边界插入静音；最后一段不额外添加尾部停顿。"""
+def trim_edges(pcm, rate, policy):
+    """仅裁掉PCM片段边缘的极低幅度样本，保留保护区及全部内部停顿。"""
+    import array
+
+    samples = array.array("h", pcm)
+    threshold = policy["threshold_pcm"]
+    if (
+        not 0 <= threshold <= 64
+        or not 0 <= policy["keep_ms"] <= 200
+        or not 0 <= policy["max_trim_ms"] <= 1500
+    ):
+        raise ValueError("边缘静音配置越界")
+    first = next((i for i, sample in enumerate(samples) if abs(sample) > threshold), None)
+    if first is None:
+        return pcm, {"head_frames": 0, "tail_frames": 0}
+    tail = next(i for i, sample in enumerate(reversed(samples)) if abs(sample) > threshold)
+    keep = int(rate * policy["keep_ms"] / 1000)
+    cap = int(rate * policy["max_trim_ms"] / 1000)
+    head_cut, tail_cut = min(max(first - keep, 0), cap), min(max(tail - keep, 0), cap)
+    if policy.get("trim_exact_zeros", False):
+        # 纯数字静音不含弱语音；仍为非零样本保留保护区，弱信号继续受原裁切上限保护。
+        zero_head = next(i for i, sample in enumerate(samples) if sample != 0)
+        zero_tail = next(i for i, sample in enumerate(reversed(samples)) if sample != 0)
+        head_cut = max(head_cut, max(zero_head - keep, 0))
+        tail_cut = max(tail_cut, max(zero_tail - keep, 0))
+    return samples[head_cut : len(samples) - tail_cut].tobytes(), {
+        "head_frames": head_cut,
+        "tail_frames": tail_cut,
+    }
+
+
+def edge_quiet_frames(pcm, threshold):
+    """测量两端连续低幅度区间；不把句内停顿当作拼接边界。"""
+    import array
+
+    samples = array.array("h", pcm)
+    head = next((i for i, x in enumerate(samples) if abs(x) > threshold), len(samples))
+    tail = next((i for i, x in enumerate(reversed(samples)) if abs(x) > threshold), len(samples))
+    return head, tail
+
+
+def join_segments(paths, pauses, output, edge_policy=None, pause_mode="additive"):
+    """补齐角色边界的总低幅度间隔，或沿用固定追加静音；句内韵律保持原样。"""
     if not paths or len(paths) != len(pauses):
         raise ValueError("音频片段与停顿数量不一致")
-    pieces = []
+    if pause_mode not in {"additive", "target_gap"}:
+        raise ValueError("停顿模式无效")
+    if pause_mode == "target_gap" and edge_policy is None:
+        raise ValueError("总间隔模式需要低幅度阈值配置")
+    segments = []
+    trimmed = []
     expected = None
-    for index, path in enumerate(paths):
+    for path in paths:
         info, pcm = wav_info(Path(path).read_bytes())
         shape = (info["channels"], info["sample_width"], info["sample_rate"])
         if expected is not None and expected != shape:
             raise ValueError("片段音频格式不一致")
         expected = shape
+        if edge_policy:
+            pcm, cuts = trim_edges(pcm, shape[2], edge_policy)
+            trimmed.append(cuts)
+        segments.append(pcm)
+    pieces, boundaries = [], []
+    quiet = (
+        [edge_quiet_frames(pcm, edge_policy["threshold_pcm"]) for pcm in segments]
+        if edge_policy
+        else None
+    )
+    rate = expected[2]
+    for index, pcm in enumerate(segments):
         pieces.append(pcm)
-        if index + 1 < len(paths):
+        if index + 1 < len(segments):
             if not 0 <= pauses[index] <= 2000:
                 raise ValueError("停顿越界")
-            pieces.append(bytes(int(shape[2] * pauses[index] / 1000) * shape[0] * shape[1]))
+            target = int(rate * pauses[index] / 1000)
+            existing = quiet[index][1] + quiet[index + 1][0] if quiet else 0
+            added = max(target - existing, 0) if pause_mode == "target_gap" else target
+            pieces.append(bytes(added * expected[0] * expected[1]))
+            boundaries.append(
+                {
+                    "after_segment": index + 1,
+                    "pause_mode": pause_mode,
+                    "configured_ms": pauses[index],
+                    "existing_quiet_ms": round(existing * 1000 / rate, 3) if quiet else None,
+                    "inserted_ms": round(added * 1000 / rate, 3),
+                    "total_quiet_ms": round((existing + added) * 1000 / rate, 3) if quiet else None,
+                }
+            )
     with wave.open(str(output), "wb") as audio:
         audio.setnchannels(expected[0])
         audio.setsampwidth(expected[1])
         audio.setframerate(expected[2])
         audio.writeframes(b"".join(pieces))
-    return wav_info(output.read_bytes())[0]
+    info = wav_info(output.read_bytes())[0]
+    if edge_policy:
+        info["edge_trims"] = trimmed
+    info["boundaries"] = boundaries
+    return info
 
 
 def save(path, value):
@@ -214,6 +289,7 @@ def execute(project, url, strength, dry_run=False, start_service=False):
     """串行生成7份试听，保留每次请求和失败原因；不启动文本训练。"""
     bundle = json.loads(AUDITION.read_text(encoding="utf-8"))
     delivery = load_delivery()
+    strength = strength or delivery["default_strength"]
     plan = build_plan(bundle, delivery, strength)
     reference_files = sorted(
         {seg["request"]["audio_path"] for entry in plan for seg in entry["segments"]}
@@ -313,7 +389,17 @@ def execute(project, url, strength, dry_run=False, start_service=False):
                     )
                 output = folder / "audio.wav"
                 info = join_segments(
-                    segments, [s["pause_after_ms"] for s in entry["segments"]], output
+                    segments,
+                    [s["pause_after_ms"] for s in entry["segments"]],
+                    output,
+                    edge_policy=delivery.get("profiles", {}).get(strength, {}).get("edge_trim")
+                    if entry["variant"] in {"rewrite_controlled", "roles_controlled"}
+                    else None,
+                    pause_mode=delivery.get("profiles", {})
+                    .get(strength, {})
+                    .get("pause_mode", "additive")
+                    if entry["variant"] in {"rewrite_controlled", "roles_controlled"}
+                    else "additive",
                 )
                 save(folder / "requests.json", requests)
                 metadata["entries"].append(
@@ -339,7 +425,11 @@ def main():
         "--service-project", type=Path, default=PROJECT_ROOT.parents[1] / "LLM-for-Local-Machine"
     )
     parser.add_argument("--base-url", default="http://127.0.0.1:8322")
-    parser.add_argument("--strength", choices=["mild", "moderate", "strong"], default="moderate")
+    parser.add_argument(
+        "--strength",
+        choices=["mild", "moderate", "strong"],
+        help="默认读取控制词典的default_strength",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--start-service",

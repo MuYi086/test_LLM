@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "purpose": "第六轮：保留已认可语速，分段加强1、2的局部情绪，收敛3、4的对白和平静语气；附平静反例及只改响度对照。",
+  "source_bundle": "eval/voxcpm_audition_v4.json",
+  "comparison_ids": [
+    "sus_test_06",
+    "sus_aud_v5_01",
+    "sus_aud_v5_05"
+  ],
+  "role_demo_ids": [
+    "sus_aud_v5_02",
+    "sus_aud_v5_03"
+  ],
+  "audition_order": [
+    "sus_test_06",
+    "sus_aud_v5_01",
+    "sus_aud_v5_02",
+    "sus_aud_v5_03",
+    "sus_aud_v5_05"
+  ],
+  "previous_comparison_ids": [
+    "sus_test_06",
+    "sus_aud_v5_01",
+    "sus_aud_v5_02",
+    "sus_aud_v5_03",
+    "sus_aud_v5_05"
+  ],
+  "new_case_ids": [],
+  "provisional_voices": {
+    "旁白": "qwen_voicedesign_20261006_145406_r0dpazut.wav",
+    "洛洵": "qwen_voicedesign_20261006_145447_t9gx5tew.wav",
+    "袁星": "qwen_voicedesign_20261006_145527_2a6z4orn.wav"
+  },
+  "voice_note": "暂用用户现有的三份合成参考音色；不推断音色性别，不代表最终角色选角",
+  "cases": [
+    {
+      "id": "sus_test_06",
+      "title": "想法保持可能性",
+      "source_text": "芮泽看着录像，画面里的椅子比上一帧靠左。他想，这也许只是镜头移动造成的。可墙上的刻度线没有变化。他没有把这个想法说出去，只记下了两帧的时间。",
+      "allowed_roles": [
+        "旁白"
+      ],
+      "fact_checks": [
+        {
+          "source": "录像",
+          "target": "录像",
+          "role": "旁白"
+        },
+        {
+          "source": "比上一帧靠左",
+          "target": "比上一帧靠左",
+          "role": "旁白"
+        },
+        {
+          "source": "也许只是镜头移动造成的",
+          "target": "也许只是镜头移动造成的",
+          "role": "旁白"
+        },
+        {
+          "source": "没有变化",
+          "target": "没有变化",
+          "role": "旁白"
+        },
+        {
+          "source": "没有把这个想法说出去",
+          "target": "没有把这个想法说出去",
+          "role": "旁白"
+        },
+        {
+          "source": "两帧的时间",
+          "target": "两帧的时间",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [],
+      "script": "[旁白][冷静]芮泽看着录像，画面里的椅子比上一帧靠左。\n[旁白][迟疑]他想，这也许只是镜头移动造成的，\n[旁白][紧绷]可墙上的刻度线没有变化。\n[旁白][冷静]他没有把这个想法说出去，只记下了两帧的时间。",
+      "provenance": "agent_gentle_tone_revision_of_reviewed_lora_output",
+      "model_run": "/home/muyi086/github/test_LLM/text-lora/outputs/suspense-20261009T033949_322533Z",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "review_sha256": "9d2d6583a98bb5b4f9f7e22b7aba0568232ce5ebc0f7558862feac45b639aab3",
+      "original_script": "[旁白][冷静]芮泽看着录像。画面里的椅子，比上一帧靠左。\n[旁白][压低]他想，这也许只是镜头移动造成的。\n[旁白][紧绷]可墙上的刻度线，没有变化。\n[旁白][压低]他没有把这个想法说出去。只记下了两帧的时间。",
+      "original_review_sha256": "134ad1db7ba9992534f6150f0594daf1b37dba72030d58d3d2f9d64f9bf620eb",
+      "revision_note": "沿用上一轮连贯标点与全部正文；旁白保留语气变化标签，TTS仅施加细微起伏；对白保留原低声归属，由固定响度差呈现轻声而不要求夸张气声。",
+      "previous_script": "[旁白][平静]芮泽看着录像，画面里的椅子比上一帧靠左。\n[旁白][平静]他想，这也许只是镜头移动造成的，可墙上的刻度线没有变化。\n[旁白][平静]他没有把这个想法说出去，只记下了两帧的时间。",
+      "audition_kind": "narration",
+      "listening_focus": "留意“也许”处的犹疑和“可墙上的刻度线”处的紧张是否更明显；开头、结尾应恢复平和。"
+    },
+    {
+      "id": "sus_aud_v5_01",
+      "title": "照片对照：平稳→迟疑→轻微紧张→收住",
+      "source_text": "周砚对照两张照片，发现门把手的角度不同。他想，也许是拍摄的位置变了。可窗框上的反光完全重合。他把照片并排放好，没有急着下结论。",
+      "script": "[旁白][冷静]周砚对照两张照片，发现门把手的角度不同。\n[旁白][迟疑]他想，也许是拍摄的位置变了。\n[旁白][紧绷]可窗框上的反光完全重合。\n[旁白][冷静]他把照片并排放好，没有急着下结论。",
+      "allowed_roles": [
+        "旁白"
+      ],
+      "fact_checks": [
+        {
+          "source": "两张照片",
+          "target": "两张照片",
+          "role": "旁白"
+        },
+        {
+          "source": "门把手的角度不同",
+          "target": "门把手的角度不同",
+          "role": "旁白"
+        },
+        {
+          "source": "也许是拍摄的位置变了",
+          "target": "也许是拍摄的位置变了",
+          "role": "旁白"
+        },
+        {
+          "source": "窗框上的反光完全重合",
+          "target": "窗框上的反光完全重合",
+          "role": "旁白"
+        },
+        {
+          "source": "照片并排放好",
+          "target": "照片并排放好",
+          "role": "旁白"
+        },
+        {
+          "source": "没有急着下结论",
+          "target": "没有急着下结论",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [],
+      "provenance": "agent_authored_audition_fixture_only",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "audition_kind": "narration",
+      "listening_focus": "留意照片解释由迟疑转为紧张，再到不急下结论的平和；不要整段持续紧张。",
+      "revision_note": "新写并审阅的声音控制试听稿，不是文本LoRA的新预测、不参与训练或模型分数统计。",
+      "review_sha256": "d803d243ae5e4e508ce59fe50ab8057f98806614708a613d679427cf2aa639a0",
+      "original_script": "[旁白][冷静]周砚对照两张照片，发现门把手的角度不同。\n[旁白][迟疑]他想，也许是拍摄的位置变了。\n[旁白][紧绷]可窗框上的反光完全重合。\n[旁白][冷静]他把照片并排放好，没有急着下结论。"
+    },
+    {
+      "id": "sus_aud_v5_02",
+      "title": "门外问答：疑问→迟疑→低声提醒",
+      "source_text": "楼道灯灭了，洛洵把袁星拦在门外。袁星问：里面有人吗？洛洵迟疑了一下，说：我只听见椅子动了。袁星低声说：先别进去。他们站在门边，屋里没有再传来声响。",
+      "script": "[旁白][冷静]楼道灯灭了，洛洵把袁星拦在门外。\n[袁星][疑问]里面有人吗？\n[旁白][平静]洛洵迟疑了一下。\n[洛洵][迟疑]我只听见椅子动了。\n[袁星][低声]先别进去。\n[旁白][压低]他们站在门边，屋里没有再传来声响。",
+      "allowed_roles": [
+        "旁白",
+        "洛洵",
+        "袁星"
+      ],
+      "fact_checks": [
+        {
+          "source": "楼道灯灭了",
+          "target": "楼道灯灭了",
+          "role": "旁白"
+        },
+        {
+          "source": "洛洵把袁星拦在门外",
+          "target": "洛洵把袁星拦在门外",
+          "role": "旁白"
+        },
+        {
+          "source": "洛洵迟疑了一下",
+          "target": "洛洵迟疑了一下",
+          "role": "旁白"
+        },
+        {
+          "source": "他们站在门边",
+          "target": "他们站在门边",
+          "role": "旁白"
+        },
+        {
+          "source": "屋里没有再传来声响",
+          "target": "屋里没有再传来声响",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [
+        {
+          "speaker": "袁星",
+          "text": "里面有人吗？",
+          "count": 1
+        },
+        {
+          "speaker": "洛洵",
+          "text": "我只听见椅子动了。",
+          "count": 1
+        },
+        {
+          "speaker": "袁星",
+          "text": "先别进去。",
+          "count": 1
+        }
+      ],
+      "provenance": "agent_authored_audition_fixture_only",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "audition_kind": "roles",
+      "listening_focus": "重点听旁白“洛洵迟疑了一下”是否平和，人物提问和迟疑是否像日常交谈；只改响度的旧合成对照可选展开。",
+      "revision_note": "新写并审阅的声音控制试听稿，不是文本LoRA的新预测、不参与训练或模型分数统计。",
+      "review_sha256": "3609f8451097e6204d04774b887687141e220ac76f726acac02ff30f41f8cef6",
+      "original_script": "[旁白][冷静]楼道灯灭了，洛洵把袁星拦在门外。\n[袁星][疑问]里面有人吗？\n[旁白][平静]洛洵迟疑了一下。\n[洛洵][迟疑]我只听见椅子动了。\n[袁星][低声]先别进去。\n[旁白][压低]他们站在门边，屋里没有再传来声响。"
+    },
+    {
+      "id": "sus_aud_v5_03",
+      "title": "门弹开：略急→确认原因→缓和",
+      "source_text": "门忽然向外弹开，洛洵急声说：退后一点。袁星让开半步。两人等了一会儿，才发现门后的木块倒了，挡住了回弹的门。洛洵缓过气来，说：没事，是木块倒了。袁星重新扶住门把手。",
+      "script": "[旁白][紧绷]门忽然向外弹开。\n[洛洵][急促]退后一点。\n[旁白][平静]袁星让开半步。两人等了一会儿，才发现门后的木块倒了，挡住了回弹的门。洛洵缓过气来。\n[洛洵][冷静]没事，是木块倒了。\n[旁白][平静]袁星重新扶住门把手。",
+      "allowed_roles": [
+        "旁白",
+        "洛洵",
+        "袁星"
+      ],
+      "fact_checks": [
+        {
+          "source": "门忽然向外弹开",
+          "target": "门忽然向外弹开",
+          "role": "旁白"
+        },
+        {
+          "source": "袁星让开半步",
+          "target": "袁星让开半步",
+          "role": "旁白"
+        },
+        {
+          "source": "两人等了一会儿",
+          "target": "两人等了一会儿",
+          "role": "旁白"
+        },
+        {
+          "source": "门后的木块倒了",
+          "target": "门后的木块倒了",
+          "role": "旁白"
+        },
+        {
+          "source": "挡住了回弹的门",
+          "target": "挡住了回弹的门",
+          "role": "旁白"
+        },
+        {
+          "source": "洛洵缓过气来",
+          "target": "洛洵缓过气来",
+          "role": "旁白"
+        },
+        {
+          "source": "袁星重新扶住门把手",
+          "target": "袁星重新扶住门把手",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [
+        {
+          "speaker": "洛洵",
+          "text": "退后一点。",
+          "count": 1
+        },
+        {
+          "speaker": "洛洵",
+          "text": "没事，是木块倒了。",
+          "count": 1
+        }
+      ],
+      "provenance": "agent_authored_audition_fixture_only",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "audition_kind": "roles",
+      "listening_focus": "开门和提醒可以有起伏，发现木块后应明显放松；重点听“没事”和平静旁白是否仍显得用力。",
+      "revision_note": "新写并审阅的声音控制试听稿，不是文本LoRA的新预测、不参与训练或模型分数统计。",
+      "review_sha256": "19de5662260aa74240f29a27185e302b3da91f73c9f5d5a9113750c9c8a2b3fe",
+      "original_script": "[旁白][紧绷]门忽然向外弹开。\n[洛洵][急促]退后一点。\n[旁白][平静]袁星让开半步。两人等了一会儿，才发现门后的木块倒了，挡住了回弹的门。洛洵缓过气来。\n[洛洵][冷静]没事，是木块倒了。\n[旁白][平静]袁星重新扶住门把手。"
+    },
+    {
+      "id": "sus_aud_v5_05",
+      "title": "清晨记录：平稳对照",
+      "source_text": "天色渐亮，孟川把窗边的杯子收进柜里，又把散开的几张纸压在书下。楼下传来推车的声音，接着有人关上院门。孟川看了看时间，坐回桌前继续抄写昨晚的记录。",
+      "script": "[旁白][平静]天色渐亮，孟川把窗边的杯子收进柜里，又把散开的几张纸压在书下。\n[旁白][平静]楼下传来推车的声音，接着有人关上院门。\n[旁白][平静]孟川看了看时间，坐回桌前继续抄写昨晚的记录。",
+      "allowed_roles": [
+        "旁白"
+      ],
+      "fact_checks": [
+        {
+          "source": "天色渐亮",
+          "target": "天色渐亮",
+          "role": "旁白"
+        },
+        {
+          "source": "杯子收进柜里",
+          "target": "杯子收进柜里",
+          "role": "旁白"
+        },
+        {
+          "source": "几张纸压在书下",
+          "target": "几张纸压在书下",
+          "role": "旁白"
+        },
+        {
+          "source": "推车的声音",
+          "target": "推车的声音",
+          "role": "旁白"
+        },
+        {
+          "source": "有人关上院门",
+          "target": "有人关上院门",
+          "role": "旁白"
+        },
+        {
+          "source": "看了看时间",
+          "target": "看了看时间",
+          "role": "旁白"
+        },
+        {
+          "source": "继续抄写昨晚的记录",
+          "target": "继续抄写昨晚的记录",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [],
+      "provenance": "agent_authored_audition_fixture_only",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "audition_kind": "narration",
+      "listening_focus": "纯平静对照：沿用上一轮编号6的正文，检查新平和指令是否仍有悬疑或夸张感。",
+      "revision_note": "新写并审阅的声音控制试听稿，不是文本LoRA的新预测、不参与训练或模型分数统计。",
+      "review_sha256": "1d9978240078440bbb162496dbfe3a6ae4c04b51beb8d4e5eb8864ba311be63f",
+      "original_script": "[旁白][平静]天色渐亮，孟川把窗边的杯子收进柜里，又把散开的几张纸压在书下。\n[旁白][平静]楼下传来推车的声音，接着有人关上院门。\n[旁白][平静]孟川看了看时间，坐回桌前继续抄写昨晚的记录。"
+    }
+  ],
+  "level_only_comparison_ids": [
+    "sus_aud_v5_02",
+    "sus_aud_v5_03"
+  ]
+}

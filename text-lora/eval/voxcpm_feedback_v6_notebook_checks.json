@@ -1,0 +1,44 @@
+{
+  "revision": 6,
+  "created_at": "2026-10-09T14:28:26.782219+00:00",
+  "run_dir": "/home/muyi086/github/test_LLM/text-lora/outputs/voxcpm-feedback-20261009T142703_715900Z",
+  "kernel": "text-lora",
+  "order": [
+    3,
+    2,
+    1
+  ],
+  "cells": [
+    {
+      "cell": 6,
+      "audio_players": 0,
+      "collapsed_audio_players": 0,
+      "errors": []
+    },
+    {
+      "cell": 4,
+      "audio_players": 12,
+      "collapsed_audio_players": 7,
+      "errors": []
+    },
+    {
+      "cell": 2,
+      "audio_players": 0,
+      "collapsed_audio_players": 0,
+      "errors": []
+    }
+  ],
+  "heavy_modules_imported": [],
+  "form_fields": [
+    [
+      "strong",
+      "revise",
+      ""
+    ]
+  ],
+  "primary_audio_players": 5,
+  "notebook_file_unchanged": true,
+  "audio_and_pointer_unchanged": true,
+  "decisions_unchanged": true,
+  "models_or_services_started": false
+}

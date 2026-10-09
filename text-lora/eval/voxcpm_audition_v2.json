@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "purpose": "依据第二轮用户意见修订旁白语气、标点及角色接话间隔；不用于训练，不声称为新模型原始输出",
+  "comparison_ids": [
+    "sus_test_06"
+  ],
+  "role_demo_ids": [
+    "sus_test_04"
+  ],
+  "provisional_voices": {
+    "旁白": "qwen_voicedesign_20261006_145406_r0dpazut.wav",
+    "洛洵": "qwen_voicedesign_20261006_145447_t9gx5tew.wav",
+    "袁星": "qwen_voicedesign_20261006_145527_2a6z4orn.wav"
+  },
+  "voice_note": "暂用用户现有的三份合成参考音色；不推断音色性别，不代表最终角色选角",
+  "cases": [
+    {
+      "id": "sus_test_04",
+      "title": "重复两次及不回答",
+      "source_text": "洛洵扶住栏杆，低声说：不要回头。袁星问：你听到了什么？洛洵没有回答，只再次说：不要回头。袁星抬起的脚放回原地，身后没有新的脚步声。",
+      "allowed_roles": [
+        "旁白",
+        "洛洵",
+        "袁星"
+      ],
+      "fact_checks": [
+        {
+          "source": "扶住栏杆",
+          "target": "扶住栏杆",
+          "role": "旁白"
+        },
+        {
+          "source": "没有回答",
+          "target": "没有回答",
+          "role": "旁白"
+        },
+        {
+          "source": "放回原地",
+          "target": "放回原地",
+          "role": "旁白"
+        },
+        {
+          "source": "没有新的脚步声",
+          "target": "没有新的脚步声",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [
+        {
+          "speaker": "洛洵",
+          "text": "不要回头。",
+          "count": 2
+        },
+        {
+          "speaker": "袁星",
+          "text": "你听到了什么？",
+          "count": 1
+        }
+      ],
+      "script": "[旁白][平静]洛洵扶住栏杆。\n[洛洵][低声]不要回头。\n[袁星][疑问]你听到了什么？\n[旁白][平静]洛洵没有回答。\n[洛洵][低声]不要回头。\n[旁白][平静]袁星抬起的脚放回原地，身后没有新的脚步声。",
+      "provenance": "agent_punctuation_and_tone_revision_of_reviewed_lora_output",
+      "model_run": "/home/muyi086/github/test_LLM/text-lora/outputs/suspense-20261009T033949_322533Z",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "review_sha256": "9228ea7afc71e2c463a773307aeff67baa44466f71f385b12ccb44b1f5ba8cc7",
+      "original_script": "[旁白][冷静]洛洵扶住栏杆。\n[洛洵][压低]不要回头。\n[袁星][疑问]你听到了什么？\n[旁白][紧绷]洛洵没有回答。\n[洛洵][压低]不要回头。\n[旁白][压低]袁星抬起的脚放回原地。身后没有新的脚步声。",
+      "original_review_sha256": "1a5cbd01eeba2011a145c251cf2cf8be3660d845dc87b8bc572b853363badc59",
+      "revision_note": "只调整标点与语气标签；正文去除标点后的字符序列保持一致，人物对白及重复次数保持一致。"
+    },
+    {
+      "id": "sus_test_06",
+      "title": "想法保持可能性",
+      "source_text": "芮泽看着录像，画面里的椅子比上一帧靠左。他想，这也许只是镜头移动造成的。可墙上的刻度线没有变化。他没有把这个想法说出去，只记下了两帧的时间。",
+      "allowed_roles": [
+        "旁白"
+      ],
+      "fact_checks": [
+        {
+          "source": "录像",
+          "target": "录像",
+          "role": "旁白"
+        },
+        {
+          "source": "比上一帧靠左",
+          "target": "比上一帧靠左",
+          "role": "旁白"
+        },
+        {
+          "source": "也许只是镜头移动造成的",
+          "target": "也许只是镜头移动造成的",
+          "role": "旁白"
+        },
+        {
+          "source": "没有变化",
+          "target": "没有变化",
+          "role": "旁白"
+        },
+        {
+          "source": "没有把这个想法说出去",
+          "target": "没有把这个想法说出去",
+          "role": "旁白"
+        },
+        {
+          "source": "两帧的时间",
+          "target": "两帧的时间",
+          "role": "旁白"
+        }
+      ],
+      "speech_checks": [],
+      "script": "[旁白][平静]芮泽看着录像，画面里的椅子比上一帧靠左。\n[旁白][平静]他想，这也许只是镜头移动造成的，可墙上的刻度线没有变化。\n[旁白][平静]他没有把这个想法说出去，只记下了两帧的时间。",
+      "provenance": "agent_punctuation_and_tone_revision_of_reviewed_lora_output",
+      "model_run": "/home/muyi086/github/test_LLM/text-lora/outputs/suspense-20261009T033949_322533Z",
+      "review_status": "agent_checked",
+      "user_audio_decision": "pending",
+      "review_sha256": "7464d0506dc6a80a478938739416c3188e1b67dee042d64385e0895976b39882",
+      "original_script": "[旁白][冷静]芮泽看着录像。画面里的椅子，比上一帧靠左。\n[旁白][压低]他想，这也许只是镜头移动造成的。\n[旁白][紧绷]可墙上的刻度线，没有变化。\n[旁白][压低]他没有把这个想法说出去。只记下了两帧的时间。",
+      "original_review_sha256": "134ad1db7ba9992534f6150f0594daf1b37dba72030d58d3d2f9d64f9bf620eb",
+      "revision_note": "只调整标点与语气标签；正文去除标点后的字符序列保持一致，人物对白及重复次数保持一致。"
+    }
+  ],
+  "source_bundle": "eval/voxcpm_audition_v1.json"
+}
